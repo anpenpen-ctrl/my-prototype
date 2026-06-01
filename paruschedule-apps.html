@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ぱるスケ</title>
+<title>ぱるスケ！</title>
 <style>
   :root {
     --cream: #fdf6f0;
@@ -130,6 +130,23 @@
     box-shadow: 0 4px 18px rgba(196,85,116,0.4);
   }
   .btn-add .plus { font-size: 18px; font-weight: 300; line-height: 1; }
+
+  .btn-reset {
+    background: none;
+    border: 1.5px solid rgba(196,85,116,0.2);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .btn-reset:hover { border-color: var(--rose); color: var(--deep-rose); background: rgba(242,196,206,0.2); }
 
   /* ── Filter tabs ── */
   .filter-bar {
@@ -854,6 +871,7 @@
     <button class="btn-add" onclick="openModal()">
       <span class="plus">＋</span> スケジュールを追加
     </button>
+    <button class="btn-reset" onclick="resetAllData()" title="データをすべて削除">🗑</button>
   </div>
 </header>
 
@@ -938,12 +956,12 @@
         <input type="date" class="form-input" id="inputWatchDate">
       </div>
       <div class="form-group">
-        <label class="form-label">場所・放送局・会場</label>
+        <label class="form-label">場所</label>
         <input type="text" class="form-input" id="inputVenue" placeholder="例：東京ドーム">
       </div>
       <div class="form-group">
         <label class="form-label">メモ</label>
-        <textarea class="form-textarea" id="inputMemo" placeholder="セトリ予想、遠征メモなど…"></textarea>
+        <textarea class="form-textarea" id="inputMemo" placeholder="遠征メモなど…"></textarea>
       </div>
       <button class="btn-submit" onclick="addEvent()">追加する ✦</button>
     </div>
@@ -1055,16 +1073,39 @@
     goods:   { label: 'グッズ・イベント', icon: '🎀', badgeClass: 'badge-goods',   detailClass: 'selected-goods',   color: '#e8a84d' },
   };
 
-  let events = [
-    { id: 1, type: 'concert', title: 'Starlight Arena Tour 2026 —— 東京公演', date: '2026-06-14', time: '17:00', venue: '東京ドーム', memo: 'アリーナA席！セトリ絶対ノート取る\n開場16:00', watchDate: '2026-06-14', past: false },
-    { id: 2, type: 'tv',      title: 'ミュージックステーション 出演', date: '2026-06-06', time: '21:00', venue: 'テレビ朝日', memo: '新曲初披露らしい🎵', watchDate: '', past: false },
-    { id: 3, type: 'goods',   title: 'FC限定写真集 先行受付開始', date: '2026-06-10', time: '', venue: 'FC公式サイト', memo: '', watchDate: '', past: false },
-    { id: 4, type: 'concert', title: 'Acoustic Night — 大阪公演', date: '2026-07-05', time: '18:30', venue: '大阪城ホール', memo: '', watchDate: '2026-07-05', past: false },
-    { id: 5, type: 'tv',      title: 'NHK「音楽の時間」特集', date: '2026-07-20', time: '22:00', venue: 'NHK総合', memo: 'ドキュメンタリー1時間スペシャル', watchDate: '', past: false },
-    { id: 6, type: 'goods',   title: '夏グッズ 一般発売', date: '2026-07-15', time: '12:00', venue: 'オンラインショップ', memo: 'うちわ・Tシャツ狙い！', watchDate: '', past: false },
-    { id: 7, type: 'concert', title: 'Summer Fes 2026 出演', date: '2026-08-10', time: '16:00', venue: '幕張メッセ', memo: '', watchDate: '', past: false },
+  // ── localStorage 永続化 ──
+  const LS_EVENTS = 'parusuke_events';
+  const LS_NEXTID = 'parusuke_nextId';
+
+  const SAMPLE_EVENTS = [
+    { id: 1, type: 'concert', title: 'Starlight Arena Tour 2026 —— 東京公演', date: '2026-06-14', time: '17:00', venue: '東京ドーム', memo: 'アリーナA席！セトリ絶対ノート取る\n開場16:00', watchDate: '2026-06-14' },
+    { id: 2, type: 'tv',      title: 'ミュージックステーション 出演', date: '2026-06-06', time: '21:00', venue: 'テレビ朝日', memo: '新曲初披露らしい🎵', watchDate: '' },
+    { id: 3, type: 'goods',   title: 'FC限定写真集 先行受付開始', date: '2026-06-10', time: '', venue: 'FC公式サイト', memo: '', watchDate: '' },
+    { id: 4, type: 'concert', title: 'Acoustic Night — 大阪公演', date: '2026-07-05', time: '18:30', venue: '大阪城ホール', memo: '', watchDate: '2026-07-05' },
+    { id: 5, type: 'tv',      title: 'NHK「音楽の時間」特集', date: '2026-07-20', time: '22:00', venue: 'NHK総合', memo: 'ドキュメンタリー1時間スペシャル', watchDate: '' },
+    { id: 6, type: 'goods',   title: '夏グッズ 一般発売', date: '2026-07-15', time: '12:00', venue: 'オンラインショップ', memo: 'うちわ・Tシャツ狙い！', watchDate: '' },
+    { id: 7, type: 'concert', title: 'Summer Fes 2026 出演', date: '2026-08-10', time: '16:00', venue: '幕張メッセ', memo: '', watchDate: '' },
   ];
-  let nextId = 10;
+
+  function loadData() {
+    try {
+      const saved = localStorage.getItem(LS_EVENTS);
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  }
+
+  function saveData() {
+    try {
+      localStorage.setItem(LS_EVENTS, JSON.stringify(events));
+      localStorage.setItem(LS_NEXTID, String(nextId));
+    } catch (e) {
+      console.warn('localStorage 保存失敗:', e);
+    }
+  }
+
+  const _saved = loadData();
+  let events  = _saved ?? SAMPLE_EVENTS;
+  let nextId  = parseInt(localStorage.getItem(LS_NEXTID) || '10', 10);
 
   let currentFilter = 'all';
   let currentWatchDate = '';
@@ -1705,6 +1746,21 @@
     showToast(`✦ ${toAdd.length}件の公演を登録しました`);
   }
 
+  // ── Reset ──
+  function resetAllData() {
+    if (!confirm('登録したスケジュールをすべて削除します。\nこの操作は元に戻せません。よろしいですか？')) return;
+    try { localStorage.removeItem(LS_EVENTS); localStorage.removeItem(LS_NEXTID); } catch {}
+    events = [];
+    nextId = 10;
+    currentFilter = 'all';
+    currentWatchDate = '';
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('.chip.all').classList.add('active');
+    document.getElementById('watchDateChip').style.display = 'none';
+    renderAll();
+    showToast('データをすべて削除しました');
+  }
+
   // ── Toast ──
   function showToast(msg) {
     const t = document.createElement('div');
@@ -1729,6 +1785,7 @@
 
   // ── Init ──
   function renderAll() {
+    saveData();
     renderCalendar();
     renderUpcoming();
     renderEvents();
