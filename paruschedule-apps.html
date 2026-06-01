@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ぱるスケ</title>
+<style>
+  :root {
+    --cream: #fdf6f0;
+    --blush: #f2c4ce;
+    --rose: #e8809a;
+    --deep-rose: #c45574;
+    --burgundy: #7d2b45;
+    --gold: #d4a843;
+    --gold-light: #f0dfa0;
+    --charcoal: #2c2230;
+    --muted: #8a7080;
+    --concert: #e84d6b;
+    --tv: #6b8de8;
+    --goods: #e8a84d;
+    --white: #fff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Background texture ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 10%, rgba(242,196,206,0.35) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 85% 80%, rgba(212,168,67,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 30% at 70% 15%, rgba(232,128,154,0.18) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Header ── */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 28px 40px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(196,85,116,0.15);
+    background: rgba(253,246,240,0.85);
+    position: sticky;
+    top: 0;
+  }
+
+  .logo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .logo-main {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 28px;
+    letter-spacing: 0.04em;
+    color: var(--deep-rose);
+    line-height: 1;
+  }
+  .logo-sub {
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-import {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.8);
+    color: var(--deep-rose);
+    border: 1.5px solid rgba(196,85,116,0.35);
+    border-radius: 50px;
+    padding: 9px 20px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-import:hover {
+    background: rgba(242,196,206,0.3);
+    border-color: var(--rose);
+    transform: translateY(-1px);
+  }
+
+  .btn-add {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--deep-rose);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 22px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 12px rgba(196,85,116,0.3);
+  }
+  .btn-add:hover {
+    background: var(--burgundy);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 18px rgba(196,85,116,0.4);
+  }
+  .btn-add .plus { font-size: 18px; font-weight: 300; line-height: 1; }
+
+  /* ── Filter tabs ── */
+  .filter-bar {
+    position: relative;
+    z-index: 5;
+    padding: 18px 40px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    margin-right: 4px;
+  }
+
+  .chip {
+    border: 1.5px solid transparent;
+    border-radius: 50px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    cursor: pointer;
+    transition: all 0.18s;
+    background: rgba(255,255,255,0.7);
+    color: var(--charcoal);
+    letter-spacing: 0.03em;
+  }
+  .chip.all { border-color: var(--deep-rose); color: var(--deep-rose); background: rgba(232,128,154,0.08); }
+  .chip.all.active, .chip.all:hover { background: var(--deep-rose); color: #fff; }
+  .chip.concert { border-color: var(--concert); color: var(--concert); }
+  .chip.concert.active, .chip.concert:hover { background: var(--concert); color: #fff; }
+  .chip.tv { border-color: var(--tv); color: var(--tv); }
+  .chip.tv.active, .chip.tv:hover { background: var(--tv); color: #fff; }
+  .chip.goods { border-color: var(--goods); color: var(--goods); }
+  .chip.goods.active, .chip.goods:hover { background: var(--goods); color: #fff; }
+
+  /* ── Watch date active chip ── */
+  .watch-date-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(196,85,116,0.12);
+    border: 1.5px solid var(--rose);
+    border-radius: 50px;
+    padding: 5px 10px 5px 14px;
+    font-size: 12px;
+    color: var(--deep-rose);
+    font-weight: 500;
+    margin-left: 4px;
+    animation: chipIn 0.18s ease;
+  }
+  @keyframes chipIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .watch-date-chip-icon { font-size: 13px; }
+  .watch-date-chip-clear {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1;
+    padding: 1px 2px;
+    border-radius: 50%;
+    transition: all 0.15s;
+  }
+  .watch-date-chip-clear:hover { color: var(--deep-rose); background: rgba(196,85,116,0.15); }
+
+  /* ── Main layout ── */
+  .main {
+    position: relative;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 140px);
+  }
+
+  /* ── Side calendar ── */
+  .side-calendar {
+    padding: 24px 24px 40px;
+    border-right: 1px solid rgba(196,85,116,0.12);
+    background: rgba(253,246,240,0.5);
+  }
+
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .cal-month {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 20px;
+    color: var(--deep-rose);
+  }
+  .cal-nav {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .cal-nav:hover { background: rgba(232,128,154,0.12); color: var(--deep-rose); }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .cal-dow {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding: 4px 0 8px;
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    gap: 2px;
+  }
+  .cal-day:hover { background: rgba(232,128,154,0.15); }
+  .cal-day.today {
+    background: var(--deep-rose);
+    color: #fff;
+    font-weight: 600;
+  }
+  .cal-day.selected {
+    background: var(--blush);
+    color: var(--burgundy);
+    font-weight: 600;
+  }
+  .cal-day.other-month { color: rgba(44,34,48,0.25); }
+  .cal-day.has-event::after {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--rose);
+    position: absolute;
+    bottom: 3px;
+  }
+  .cal-day.today.has-event::after { background: rgba(255,255,255,0.8); }
+
+  .dot-row {
+    display: flex;
+    gap: 2px;
+    margin-top: 1px;
+  }
+  .dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+  }
+
+  /* ── Upcoming mini ── */
+  .upcoming-mini {
+    margin-top: 28px;
+  }
+  .section-title-sm {
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(196,85,116,0.15);
+  }
+  .mini-event {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(196,85,116,0.08);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-radius: 6px;
+  }
+  .mini-event:hover { background: rgba(242,196,206,0.2); padding-left: 6px; }
+  .mini-date-badge {
+    min-width: 36px;
+    text-align: center;
+  }
+  .mini-date-badge .md { font-size: 18px; font-family: Georgia, 'Times New Roman', serif; color: var(--deep-rose); line-height: 1; }
+  .mini-date-badge .my { font-size: 9px; color: var(--muted); letter-spacing: 0.05em; }
+  .mini-event-info { flex: 1; }
+  .mini-event-title { font-size: 12px; font-weight: 500; line-height: 1.4; color: var(--charcoal); }
+  .mini-event-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Event list ── */
+  .event-panel {
+    padding: 28px 36px;
+    overflow-y: auto;
+  }
+
+  .month-section { margin-bottom: 40px; }
+  .month-heading {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 32px;
+    color: var(--blush);
+    letter-spacing: 0.02em;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .month-heading .year { font-size: 14px; color: var(--muted); font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif; letter-spacing: 0.15em; }
+
+  /* ── Event card ── */
+  .event-card {
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    gap: 0 18px;
+    align-items: start;
+    padding: 18px 20px;
+    background: rgba(255,255,255,0.75);
+    border-radius: 14px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(196,85,116,0.1);
+    transition: all 0.2s;
+    cursor: pointer;
+    box-shadow: 0 1px 6px rgba(125,43,69,0.04);
+  }
+  .event-card:hover {
+    transform: translateX(4px);
+    border-color: rgba(196,85,116,0.25);
+    box-shadow: 0 4px 20px rgba(125,43,69,0.08);
+    background: rgba(255,255,255,0.95);
+  }
+  .event-card.past { opacity: 0.5; }
+
+  .card-date {
+    text-align: center;
+    border-right: 1px solid rgba(196,85,116,0.15);
+    padding-right: 18px;
+  }
+  .card-date .day { font-family: Georgia, 'Times New Roman', serif; font-size: 30px; color: var(--deep-rose); line-height: 1; }
+  .card-date .weekday { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; margin-top: 2px; }
+  .card-date .month { font-size: 10px; color: var(--muted); font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif; }
+
+  .card-body { padding-left: 2px; }
+  .card-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 3px 10px;
+    border-radius: 50px;
+    margin-bottom: 8px;
+  }
+  .badge-concert { background: rgba(232,77,107,0.1); color: var(--concert); }
+  .badge-tv { background: rgba(107,141,232,0.1); color: var(--tv); }
+  .badge-goods { background: rgba(232,168,77,0.12); color: #b5782a; }
+
+  .card-title {
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--charcoal);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  .card-detail {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .card-detail span { margin-right: 14px; }
+  .card-detail .icon { margin-right: 3px; }
+
+  .card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+  }
+  .btn-memo {
+    background: none;
+    border: 1.5px solid rgba(196,85,116,0.25);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 11px;
+    color: var(--deep-rose);
+    cursor: pointer;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-memo:hover { background: rgba(242,196,206,0.3); }
+
+  .btn-delete {
+    background: none;
+    border: none;
+    color: rgba(196,85,116,0.3);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+  .btn-delete:hover { color: var(--concert); background: rgba(232,77,107,0.08); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif; font-size: 14px; letter-spacing: 0.1em; }
+
+  /* ── Modal overlay ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(44,34,48,0.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--cream);
+    border-radius: 20px;
+    width: 520px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(44,34,48,0.2);
+    animation: modalIn 0.25s ease;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .modal-header {
+    padding: 28px 28px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .modal-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 22px;
+    color: var(--deep-rose);
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--muted);
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+  }
+  .modal-close:hover { color: var(--deep-rose); }
+
+  .modal-body { padding: 0 28px 28px; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    margin-bottom: 7px;
+    text-transform: uppercase;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    border: 1.5px solid rgba(196,85,116,0.2);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    color: var(--charcoal);
+    background: rgba(255,255,255,0.8);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--rose);
+    background: #fff;
+  }
+  .form-textarea { resize: vertical; min-height: 80px; }
+
+  .type-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .type-option {
+    border: 1.5px solid rgba(196,85,116,0.2);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: rgba(255,255,255,0.7);
+  }
+  .type-option .type-icon { font-size: 22px; display: block; margin-bottom: 5px; }
+  .type-option .type-name { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
+  .type-option.selected-concert { border-color: var(--concert); background: rgba(232,77,107,0.08); }
+  .type-option.selected-concert .type-name { color: var(--concert); font-weight: 500; }
+  .type-option.selected-tv { border-color: var(--tv); background: rgba(107,141,232,0.08); }
+  .type-option.selected-tv .type-name { color: var(--tv); font-weight: 500; }
+  .type-option.selected-goods { border-color: var(--goods); background: rgba(232,168,77,0.1); }
+  .type-option.selected-goods .type-name { color: #b5782a; font-weight: 500; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .btn-submit {
+    width: 100%;
+    background: linear-gradient(135deg, var(--deep-rose), var(--burgundy));
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(196,85,116,0.3);
+  }
+  .btn-submit:hover { opacity: 0.92; transform: translateY(-1px); }
+
+  /* ── Detail modal ── */
+  .detail-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(44,34,48,0.45);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .detail-overlay.open { display: flex; }
+
+  .detail-sheet {
+    background: var(--cream);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 680px;
+    padding: 28px 32px 40px;
+    animation: sheetIn 0.25s ease;
+  }
+  @keyframes sheetIn {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .detail-pill {
+    width: 36px;
+    height: 4px;
+    background: rgba(196,85,116,0.2);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .detail-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .detail-title {
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .detail-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 16px;
+  }
+  .detail-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .detail-memo-box {
+    background: rgba(242,196,206,0.15);
+    border: 1px solid rgba(196,85,116,0.15);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--charcoal);
+    line-height: 1.7;
+    margin-top: 4px;
+    white-space: pre-wrap;
+  }
+  .detail-memo-empty { color: var(--muted); font-style: italic; font-size: 12px; }
+
+  .detail-memo-editor {
+    width: 100%;
+    min-height: 110px;
+    border: 1px solid rgba(196,85,116,0.2);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.82);
+    color: var(--charcoal);
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.7;
+    resize: vertical;
+  }
+  .detail-memo-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 10px;
+  }
+  .btn-small {
+    border: 1.5px solid rgba(196,85,116,0.25);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 12px;
+    background: rgba(255,255,255,0.75);
+    color: var(--deep-rose);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-small.primary { background: var(--deep-rose); color: #fff; border-color: var(--deep-rose); }
+  .btn-small.danger { color: var(--muted); }
+  .btn-small:hover { opacity: .88; }
+
+  /* ── Import modal ── */
+  .import-hint-box {
+    background: rgba(242,196,206,0.15);
+    border: 1px solid rgba(196,85,116,0.18);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 4px;
+  }
+  .import-hint-title {
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--charcoal);
+    margin-bottom: 6px;
+  }
+  .import-hint-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+  .import-examples {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .import-ex-col { }
+  .import-ex-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 5px;
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  }
+  .import-ex-pre {
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(196,85,116,0.15);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: var(--charcoal);
+    line-height: 1.8;
+    white-space: pre-wrap;
+    font-family: 'Noto Sans JP', monospace;
+  }
+
+  .import-preview-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(196,85,116,0.1);
+    border-radius: 10px;
+    margin-bottom: 6px;
+    transition: all 0.15s;
+  }
+  .import-preview-row.error-row {
+    background: rgba(232,77,107,0.05);
+    border-color: rgba(232,77,107,0.2);
+  }
+  .import-preview-row.skip-row {
+    opacity: 0.45;
+  }
+  .import-preview-date {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 18px;
+    color: var(--deep-rose);
+    min-width: 44px;
+    text-align: center;
+  }
+  .import-preview-info { }
+  .import-preview-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--charcoal);
+    margin-bottom: 2px;
+  }
+  .import-preview-meta {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .import-preview-toggle {
+    background: none;
+    border: 1.5px solid rgba(196,85,116,0.25);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .import-preview-toggle:hover { border-color: var(--rose); color: var(--deep-rose); }
+  .import-preview-toggle.skip { background: rgba(232,77,107,0.07); }
+
+  /* ── Watch date tag on card (clickable) ── */
+  .watch-date-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(196,85,116,0.08);
+    border: 1px solid rgba(196,85,116,0.22);
+    border-radius: 50px;
+    padding: 2px 10px 2px 6px;
+    color: var(--deep-rose);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .watch-date-tag:hover {
+    background: rgba(196,85,116,0.18);
+    border-color: var(--rose);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(196,85,116,0.15);
+  }
+  .watch-date-tag:active { transform: translateY(0); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(196,85,116,0.25); border-radius: 2px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    header { padding: 16px 16px; align-items: flex-start; gap: 12px; flex-direction: column; }
+    .logo-main { font-size: 24px; }
+    .header-actions { width: 100%; gap: 8px; }
+    .btn-import, .btn-add { flex: 1; justify-content: center; padding: 9px 10px; font-size: 12px; }
+    .filter-bar { padding: 12px 16px; gap: 8px; }
+    .main { grid-template-columns: 1fr; min-height: auto; }
+    .side-calendar { display: none; }
+    .event-panel { padding: 16px; }
+    .event-card { grid-template-columns: 58px 1fr; gap: 0 12px; padding: 14px; }
+    .card-actions { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; margin-top: 10px; }
+    .form-row { grid-template-columns: 1fr; gap: 0; }
+    .type-selector { grid-template-columns: 1fr; }
+    .detail-sheet { padding: 22px 18px 32px; }
+    .import-examples { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <span class="logo-main">ぱるスケ</span>
+    <span class="logo-sub">theater schedule</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn-import" onclick="openImportModal()">
+      <span>📋</span> 一括登録
+    </button>
+    <button class="btn-add" onclick="openModal()">
+      <span class="plus">＋</span> スケジュールを追加
+    </button>
+  </div>
+</header>
+
+<!-- Filter -->
+<div class="filter-bar">
+  <span class="filter-label">表示</span>
+  <button class="chip all active" onclick="setFilter('all', this)">すべて</button>
+  <button class="chip concert" onclick="setFilter('concert', this)">🎵 公演</button>
+  <button class="chip tv" onclick="setFilter('tv', this)">📺 出演</button>
+  <button class="chip goods" onclick="setFilter('goods', this)">🎀 グッズ</button>
+  <div id="watchDateChip" class="watch-date-chip" style="display:none;">
+    <span class="watch-date-chip-icon">🎫</span>
+    <span id="watchDateChipLabel"></span>
+    <button class="watch-date-chip-clear" onclick="clearWatchDateFilter()" title="フィルター解除">✕</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <!-- Side calendar -->
+  <aside class="side-calendar">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+      <span class="cal-month" id="calMonthLabel"></span>
+      <button class="cal-nav" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+
+    <div class="upcoming-mini">
+      <div class="section-title-sm">直近のイベント</div>
+      <div id="upcomingList"></div>
+    </div>
+  </aside>
+
+  <!-- Event panel -->
+  <section class="event-panel" id="eventPanel">
+    <!-- Rendered by JS -->
+  </section>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">スケジュールを追加</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">カテゴリ</label>
+        <div class="type-selector">
+          <div class="type-option" onclick="selectType('concert', this)" id="type-concert">
+            <span class="type-icon">🎵</span>
+            <span class="type-name">公演・コンサート</span>
+          </div>
+          <div class="type-option" onclick="selectType('tv', this)" id="type-tv">
+            <span class="type-icon">📺</span>
+            <span class="type-name">出演・映画</span>
+          </div>
+          <div class="type-option" onclick="selectType('goods', this)" id="type-goods">
+            <span class="type-icon">🎀</span>
+            <span class="type-name">グッズ・イベント</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">タイトル</label>
+        <input type="text" class="form-input" id="inputTitle" placeholder="例：Starlight Arena Tour 2026">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">日付</label>
+          <input type="date" class="form-input" id="inputDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">時間（任意）</label>
+          <input type="time" class="form-input" id="inputTime">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">観劇予定日（任意）</label>
+        <input type="date" class="form-input" id="inputWatchDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">場所・放送局・会場</label>
+        <input type="text" class="form-input" id="inputVenue" placeholder="例：東京ドーム">
+      </div>
+      <div class="form-group">
+        <label class="form-label">メモ</label>
+        <textarea class="form-textarea" id="inputMemo" placeholder="セトリ予想、遠征メモなど…"></textarea>
+      </div>
+      <button class="btn-submit" onclick="addEvent()">追加する ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal" style="width:620px;">
+    <div class="modal-header">
+      <span class="modal-title">公演スケジュールを一括登録</span>
+      <button class="modal-close" onclick="closeImportModal()">×</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Step 1: paste -->
+      <div id="importStep1">
+        <div class="import-hint-box">
+          <div class="import-hint-title">📋 公式サイトの日程表をそのままペーストしてください</div>
+          <div class="import-hint-desc">タブ区切りの形式に対応。休演日・貸切公演・複数回公演も自動解析します。</div>
+          <div class="import-examples">
+            <div class="import-ex-col">
+              <div class="import-ex-label">対応フォーマット例</div>
+              <pre class="import-ex-pre">6/6	土	13:30
+6/7	日	貸切公演
+		15:30
+6/8	月	休演日
+6/10	水	★13:30
+		18:00
+6/13	土	11:00
+		貸切公演</pre>
+            </div>
+            <div class="import-ex-col">
+              <div class="import-ex-label">解析結果イメージ</div>
+              <pre class="import-ex-pre">6/6（土）13:30 → 登録
+6/7（日）15:30 → 登録
+　　　　 貸切公演 → メモ
+6/8（月）→ 休演日スキップ
+6/10（水）13:30 → 登録
+　　　　  18:00 → 登録（×2）
+6/13（土）11:00 → 登録
+　　　　  貸切公演 → メモ</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label">公演名（タイトル）</label>
+          <input type="text" class="form-input" id="importTourTitle" placeholder="例：音楽劇「星に願いを」">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">劇場・会場名</label>
+            <input type="text" class="form-input" id="importVenueTitle" placeholder="例：日生劇場">
+          </div>
+          <div class="form-group">
+            <label class="form-label">年（省略時は自動判定）</label>
+            <input type="number" class="form-input" id="importYear" placeholder="例：2026" min="2020" max="2035">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">スケジュールテキスト（コピペ）</label>
+          <textarea class="form-textarea" id="importText" style="min-height:160px;font-family:monospace;font-size:12px;" placeholder="ここにペースト…"></textarea>
+        </div>
+
+        <button class="btn-submit" onclick="parseImport()" style="margin-top:0;">解析する →</button>
+      </div>
+
+      <!-- Step 2: preview -->
+      <div id="importStep2" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-family:'Hiragino Mincho ProN','Yu Mincho',serif;font-size:13px;color:var(--charcoal);">
+            <span id="importCountLabel"></span>件を検出しました。内容を確認してください。
+          </div>
+          <button onclick="backToStep1()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;">← 戻る</button>
+        </div>
+
+        <div id="importPreviewList" style="max-height:340px;overflow-y:auto;"></div>
+
+        <div id="importErrorBox" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(232,77,107,0.08);border:1px solid rgba(232,77,107,0.2);border-radius:10px;font-size:12px;color:var(--concert);"></div>
+
+        <button class="btn-submit" onclick="confirmImport()" style="margin-top:16px;">
+          登録する ✦ <span id="importConfirmCount"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Detail Sheet -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-sheet" id="detailSheet">
+    <div class="detail-pill"></div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<script>
+  // ── Data ──
+  const WEEKDAYS = ['日','月','火','水','木','金','土'];
+  const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  const typeConfig = {
+    concert: { label: '公演・コンサート', icon: '🎵', badgeClass: 'badge-concert', detailClass: 'selected-concert', color: '#e84d6b' },
+    tv:      { label: '出演・映画',       icon: '📺', badgeClass: 'badge-tv',      detailClass: 'selected-tv',      color: '#6b8de8' },
+    goods:   { label: 'グッズ・イベント', icon: '🎀', badgeClass: 'badge-goods',   detailClass: 'selected-goods',   color: '#e8a84d' },
+  };
+
+  let events = [
+    { id: 1, type: 'concert', title: 'Starlight Arena Tour 2026 —— 東京公演', date: '2026-06-14', time: '17:00', venue: '東京ドーム', memo: 'アリーナA席！セトリ絶対ノート取る\n開場16:00', watchDate: '2026-06-14', past: false },
+    { id: 2, type: 'tv',      title: 'ミュージックステーション 出演', date: '2026-06-06', time: '21:00', venue: 'テレビ朝日', memo: '新曲初披露らしい🎵', watchDate: '', past: false },
+    { id: 3, type: 'goods',   title: 'FC限定写真集 先行受付開始', date: '2026-06-10', time: '', venue: 'FC公式サイト', memo: '', watchDate: '', past: false },
+    { id: 4, type: 'concert', title: 'Acoustic Night — 大阪公演', date: '2026-07-05', time: '18:30', venue: '大阪城ホール', memo: '', watchDate: '2026-07-05', past: false },
+    { id: 5, type: 'tv',      title: 'NHK「音楽の時間」特集', date: '2026-07-20', time: '22:00', venue: 'NHK総合', memo: 'ドキュメンタリー1時間スペシャル', watchDate: '', past: false },
+    { id: 6, type: 'goods',   title: '夏グッズ 一般発売', date: '2026-07-15', time: '12:00', venue: 'オンラインショップ', memo: 'うちわ・Tシャツ狙い！', watchDate: '', past: false },
+    { id: 7, type: 'concert', title: 'Summer Fes 2026 出演', date: '2026-08-10', time: '16:00', venue: '幕張メッセ', memo: '', watchDate: '', past: false },
+  ];
+  let nextId = 10;
+
+  let currentFilter = 'all';
+  let currentWatchDate = '';
+  let selectedType = '';
+  let calYear, calMonth;
+
+  const today = new Date();
+  calYear = today.getFullYear();
+  calMonth = today.getMonth();
+
+  // ── Filter ──
+  function setFilter(f, el) {
+    currentFilter = f;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    renderEvents();
+  }
+
+  function setWatchDateFilter(value) {
+    currentWatchDate = value || '';
+    const chip  = document.getElementById('watchDateChip');
+    const label = document.getElementById('watchDateChipLabel');
+    if (currentWatchDate) {
+      label.textContent = formatDateJP(currentWatchDate);
+      chip.style.display = 'flex';
+    } else {
+      chip.style.display = 'none';
+    }
+    renderEvents();
+  }
+
+  function clearWatchDateFilter() {
+    currentWatchDate = '';
+    document.getElementById('watchDateChip').style.display = 'none';
+    renderEvents();
+  }
+
+  function filteredEvents() {
+    return events.filter(e => {
+      const typeMatch = currentFilter === 'all' || e.type === currentFilter;
+      const watchMatch = !currentWatchDate || e.watchDate === currentWatchDate;
+      return typeMatch && watchMatch;
+    });
+  }
+
+  // ── Calendar ──
+  function renderCalendar() {
+    const label = document.getElementById('calMonthLabel');
+    label.textContent = `${calYear}年 ${calMonth + 1}月`;
+
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+
+    WEEKDAYS.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'cal-dow';
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const prevDays = new Date(calYear, calMonth, 0).getDate();
+
+    // prev month fill
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const el = document.createElement('div');
+      el.className = 'cal-day other-month';
+      el.textContent = prevDays - i;
+      grid.appendChild(el);
+    }
+
+    // this month
+    for (let d = 1; d <= daysInMonth; d++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day';
+      const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isToday = calYear === today.getFullYear() && calMonth === today.getMonth() && d === today.getDate();
+      if (isToday) el.classList.add('today');
+
+      // dot indicators
+      const dayEvents = events.filter(e => e.date === dateStr);
+      const numEl = document.createElement('span');
+      numEl.textContent = d;
+      el.appendChild(numEl);
+
+      if (dayEvents.length > 0) {
+        const dotRow = document.createElement('div');
+        dotRow.className = 'dot-row';
+        dayEvents.slice(0,3).forEach(ev => {
+          const dot = document.createElement('div');
+          dot.className = 'dot';
+          dot.style.background = typeConfig[ev.type].color;
+          dotRow.appendChild(dot);
+        });
+        el.appendChild(dotRow);
+      }
+
+      el.onclick = () => scrollToDate(dateStr);
+      grid.appendChild(el);
+    }
+
+    // next month fill
+    const totalCells = firstDay + daysInMonth;
+    const remain = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    for (let d = 1; d <= remain; d++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day other-month';
+      el.textContent = d;
+      grid.appendChild(el);
+    }
+  }
+
+  function changeMonth(dir) {
+    calMonth += dir;
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    if (calMonth < 0)  { calMonth = 11; calYear--; }
+    renderCalendar();
+  }
+
+  function scrollToDate(dateStr) {
+    const el = document.getElementById('event-' + dateStr);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // ── Upcoming mini ──
+  function renderUpcoming() {
+    const ul = document.getElementById('upcomingList');
+    const now = today.toISOString().slice(0,10);
+    const upcoming = events
+      .filter(e => e.date >= now)
+      .sort((a,b) => a.date.localeCompare(b.date))
+      .slice(0,4);
+
+    ul.innerHTML = upcoming.length ? '' : '<div style="font-size:12px;color:var(--muted);">直近の予定なし</div>';
+
+    upcoming.forEach(ev => {
+      const d = new Date(ev.date + 'T12:00:00');
+      const cfg = typeConfig[ev.type];
+      ul.innerHTML += `
+        <div class="mini-event" onclick="openDetail(${ev.id})">
+          <div class="mini-date-badge">
+            <div class="md">${d.getDate()}</div>
+            <div class="my">${d.getMonth()+1}月</div>
+          </div>
+          <div class="mini-event-info">
+            <div class="mini-event-title">${cfg.icon} ${ev.title}</div>
+            <div class="mini-event-meta">${ev.venue || '—'}</div>
+          </div>
+        </div>`;
+    });
+  }
+
+  // ── Event list ──
+  function renderEvents() {
+    const panel = document.getElementById('eventPanel');
+    const evs = filteredEvents().slice().sort((a,b) => a.date.localeCompare(b.date));
+    const now = today.toISOString().slice(0,10);
+
+    if (evs.length === 0) {
+      panel.innerHTML = `<div class="empty-state"><div class="emoji">🌸</div><p>条件に合うスケジュールがありません</p></div>`;
+      return;
+    }
+
+    // Group by month
+    const byMonth = {};
+    evs.forEach(ev => {
+      const key = ev.date.slice(0,7);
+      if (!byMonth[key]) byMonth[key] = [];
+      byMonth[key].push(ev);
+    });
+
+    panel.innerHTML = '';
+    for (const [key, group] of Object.entries(byMonth)) {
+      const [yr, mo] = key.split('-');
+      const section = document.createElement('div');
+      section.className = 'month-section';
+      section.innerHTML = `
+        <div class="month-heading">
+          ${MONTHS_EN[parseInt(mo)-1]}
+          <span class="year">${yr}年${parseInt(mo)}月</span>
+        </div>`;
+
+      group.forEach(ev => {
+        const d = new Date(ev.date + 'T12:00:00');
+        const cfg = typeConfig[ev.type];
+        const isPast = ev.date < now;
+        const card = document.createElement('div');
+        card.className = 'event-card' + (isPast ? ' past' : '');
+        card.id = 'event-' + ev.date;
+        card.innerHTML = `
+          <div class="card-date">
+            <div class="day">${String(d.getDate()).padStart(2,'0')}</div>
+            <div class="weekday">${WEEKDAYS[d.getDay()]}曜日</div>
+            <div class="month">${d.getMonth()+1}月</div>
+          </div>
+          <div class="card-body">
+            <span class="card-type-badge ${cfg.badgeClass}">${cfg.icon} ${cfg.label}</span>
+            <div class="card-title">${ev.title}</div>
+            <div class="card-detail">
+              ${ev.time ? `<span><span class="icon">🕐</span>${ev.time}</span>` : ''}
+              ${ev.venue ? `<span><span class="icon">📍</span>${ev.venue}</span>` : ''}
+              ${ev.watchDate ? `<span class="watch-date-tag" onclick="event.stopPropagation();setWatchDateFilter('${ev.watchDate}')" title="この観劇予定日で絞り込む"><span class="icon">🎫</span>観劇予定 ${formatDateJP(ev.watchDate)}</span>` : ''}
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-memo" onclick="event.stopPropagation();openDetail(${ev.id})">詳細 →</button>
+            <button class="btn-delete" onclick="event.stopPropagation();deleteEvent(${ev.id})" title="削除">✕</button>
+          </div>`;
+        card.onclick = () => openDetail(ev.id);
+        section.appendChild(card);
+      });
+
+      panel.appendChild(section);
+    }
+  }
+
+  // ── Delete ──
+  function deleteEvent(id) {
+    if (!confirm('このスケジュールを削除しますか？')) return;
+    events = events.filter(e => e.id !== id);
+    renderAll();
+  }
+
+  // ── Modal ──
+  function openModal() {
+    selectedType = '';
+    document.getElementById('inputTitle').value = '';
+    document.getElementById('inputDate').value = '';
+    document.getElementById('inputTime').value = '';
+    document.getElementById('inputWatchDate').value = '';
+    document.getElementById('inputVenue').value = '';
+    document.getElementById('inputMemo').value = '';
+    document.querySelectorAll('.type-option').forEach(el => {
+      el.className = 'type-option';
+    });
+    document.getElementById('addModal').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('addModal').classList.remove('open');
+  }
+  document.getElementById('addModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  function selectType(type, el) {
+    selectedType = type;
+    document.querySelectorAll('.type-option').forEach(o => o.className = 'type-option');
+    el.className = `type-option selected-${type}`;
+  }
+
+  function addEvent() {
+    const title = document.getElementById('inputTitle').value.trim();
+    const date  = document.getElementById('inputDate').value;
+    if (!title) { alert('タイトルを入力してください'); return; }
+    if (!date)  { alert('日付を選択してください'); return; }
+    if (!selectedType) { alert('カテゴリを選択してください'); return; }
+
+    events.push({
+      id: nextId++,
+      type: selectedType,
+      title,
+      date,
+      time: document.getElementById('inputTime').value,
+      venue: document.getElementById('inputVenue').value.trim(),
+      watchDate: document.getElementById('inputWatchDate').value,
+      memo: document.getElementById('inputMemo').value.trim(),
+    });
+
+    closeModal();
+    renderAll();
+  }
+
+  function formatDateJP(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T12:00:00');
+    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${WEEKDAYS[d.getDay()]}）`;
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
+  }
+
+  // ── Detail ──
+  function openDetail(id) {
+    const ev = events.find(e => e.id === id);
+    if (!ev) return;
+    const d = new Date(ev.date + 'T12:00:00');
+    const cfg = typeConfig[ev.type];
+    const content = document.getElementById('detailContent');
+    content.innerHTML = `
+      <span class="detail-type-badge badge-${ev.type}" style="background:${cfg.color}18;color:${cfg.color}">
+        ${cfg.icon} ${cfg.label}
+      </span>
+      <div class="detail-title">${escapeHTML(ev.title)}</div>
+      <div class="detail-meta-row">
+        <div class="detail-meta-item">📅 ${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${WEEKDAYS[d.getDay()]}）</div>
+        ${ev.time ? `<div class="detail-meta-item">🕐 ${escapeHTML(ev.time)}</div>` : ''}
+        ${ev.venue ? `<div class="detail-meta-item">📍 ${escapeHTML(ev.venue)}</div>` : ''}
+        ${ev.watchDate ? `<div class="detail-meta-item">🎫 観劇予定 ${formatDateJP(ev.watchDate)}</div>` : ''}
+      </div>
+      <div style="font-size:11px;letter-spacing:.1em;color:var(--muted);font-family:'Hiragino Mincho ProN','Yu Mincho',serif;margin-bottom:8px;text-transform:uppercase;">メモ</div>
+      <textarea id="detailMemo" class="detail-memo-editor" placeholder="メモを入力できます。未入力にして保存するとメモなしになります。">${escapeHTML(ev.memo || '')}</textarea>
+      <div class="detail-memo-actions">
+        <button class="btn-small danger" onclick="clearMemo(${ev.id})">メモ削除</button>
+        <button class="btn-small primary" onclick="saveMemo(${ev.id})">メモ保存</button>
+      </div>`;
+    document.getElementById('detailOverlay').classList.add('open');
+  }
+
+  function saveMemo(id) {
+    const ev = events.find(e => e.id === id);
+    if (!ev) return;
+    ev.memo = document.getElementById('detailMemo').value.trim();
+    renderAll();
+    openDetail(id);
+    showToast('メモを保存しました');
+  }
+
+  function clearMemo(id) {
+    const ev = events.find(e => e.id === id);
+    if (!ev) return;
+    if (ev.memo && !confirm('メモを削除しますか？')) return;
+    ev.memo = '';
+    renderAll();
+    openDetail(id);
+    showToast('メモを削除しました');
+  }
+
+  function closeDetail(e) {
+    if (e.target === document.getElementById('detailOverlay')) {
+      document.getElementById('detailOverlay').classList.remove('open');
+    }
+  }
+
+  // ── Bulk Import ──
+  let importParsed = [];
+  let importSkipped = new Set();
+
+  function openImportModal() {
+    document.getElementById('importTourTitle').value = '';
+    document.getElementById('importText').value = '';
+    document.getElementById('importStep1').style.display = '';
+    document.getElementById('importStep2').style.display = 'none';
+    importParsed = [];
+    importSkipped = new Set();
+    document.getElementById('importModal').classList.add('open');
+  }
+  function closeImportModal() {
+    document.getElementById('importModal').classList.remove('open');
+  }
+  document.getElementById('importModal').addEventListener('click', function(e) {
+    if (e.target === this) closeImportModal();
+  });
+
+  function backToStep1() {
+    document.getElementById('importStep1').style.display = '';
+    document.getElementById('importStep2').style.display = 'none';
+  }
+
+  /**
+   * 劇場スケジュール形式パーサー
+   *
+   * 対応形式（タブ or スペース区切り）:
+   *   6/6  土  13:30
+   *   6/7  日  貸切公演
+   *            15:30
+   *   6/8  月  休演日
+   *   6/10 水  ★13:30
+   *            18:00
+   *
+   * ルール:
+   *   - 日付（M/D）を含む行 → 新しい日付ブロック開始
+   *   - 時間（HH:MM）があれば公演登録、なければ注記として保持
+   *   - 休演日・定休日 → その日はスキップ（skip:true）
+   *   - 同日複数回 → 時間ごとに別エントリ生成
+   *   - 貸切公演などの注記は memo に付与
+   */
+  const SKIP_WORDS = /休演日|定休日|公休|メンテナンス/;
+  const NOTE_WORDS = /貸切|貸し切り|招待|特別|プレビュー|ゲネプロ|稽古|プレス/;
+  const WEEKDAY_NAMES = ['日','月','火','水','木','金','土'];
+
+  function extractTime(token) {
+    // ★や※などの装飾を除去した上で HH:MM を抽出
+    const m = token.replace(/[★※☆◎●■▲＊*]/g, '').match(/(\d{1,2}):(\d{2})/);
+    if (!m) return null;
+    return `${String(m[1]).padStart(2,'0')}:${m[2]}`;
+  }
+
+  function extractDate(token, refYear) {
+    // M/D, MM/DD, M/D(土), M月D日 などを許容
+    const text = String(token || '').trim();
+    const m = text.match(/^(\d{1,2})\s*[\/／]\s*(\d{1,2})/) || text.match(/^(\d{1,2})\s*月\s*(\d{1,2})\s*日?/);
+    if (!m) return null;
+    let year = (window._importYearOverride) || refYear;
+    const month = parseInt(m[1], 10);
+    const day   = parseInt(m[2], 10);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+    // 過去日付かつ年override無しなら翌年
+    if (!window._importYearOverride) {
+      const candidate = new Date(year, month - 1, day);
+      if (candidate < new Date() - 7 * 86400000) year++;
+    }
+    return {
+      dateStr: `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`,
+      month, day,
+    };
+  }
+
+  function parseTheaterSchedule(raw) {
+    const currentYear = new Date().getFullYear();
+    const results = []; // { dateStr, weekday, times:[], notes:[], skip:bool }
+    let currentEntry = null;
+
+    // 空白行も含めて分割（空行は日付ブロックの区切り手がかりになる場合あり）
+    const lines = raw.split(/\n/);
+
+    for (const rawLine of lines) {
+      // Excel/公式サイトからのコピーは「タブ」「半角スペース」「全角スペース」が混在しやすい
+      // 先にタブを潰してしまうと split(/\t/) が効かず、"6/6 土 13:30" 全体が1トークンになって0件判定になるため、分割はここでまとめて行う
+      const line = rawLine.replace(/　/g, ' ').trim();
+      if (!line) continue;
+
+      // ヘッダー行スキップ（「日付」「開演時間」などを含む）
+      if (/^日付|^開演時間|^月日|^date/i.test(line)) continue;
+
+      // トークンに分割：タブ優先。タブがない場合は単一スペース区切りにも対応
+      const tokens = (rawLine.includes('\t') ? rawLine.split(/\t+/) : line.split(/\s+/))
+        .map(t => t.replace(/　/g, ' ').trim())
+        .filter(Boolean);
+      if (!tokens.length) continue;
+
+      // 先頭トークンに日付（M/D）が含まれるか
+      const dateInfo = extractDate(tokens[0], currentYear);
+
+      if (dateInfo) {
+        // 新しい日付ブロック
+        currentEntry = {
+          dateStr: dateInfo.dateStr,
+          weekday: WEEKDAY_NAMES[new Date(dateInfo.dateStr + 'T12:00:00').getDay()],
+          times: [],
+          notes: [],
+          skip: false,
+        };
+        results.push(currentEntry);
+
+        // 残りトークンを処理（曜日・時間・注記）
+        for (let i = 1; i < tokens.length; i++) {
+          const tok = tokens[i];
+          if (/^[日月火水木金土]$/.test(tok)) continue; // 曜日トークンは無視
+          if (SKIP_WORDS.test(tok)) { currentEntry.skip = true; break; }
+          const t = extractTime(tok);
+          if (t) {
+            currentEntry.times.push({ time: t, note: NOTE_WORDS.test(tok) ? tok.replace(/[\d:★※☆◎●■▲＊*]/g,'').trim() : '' });
+          } else if (tok.length > 0 && !/^[日月火水木金土]$/.test(tok)) {
+            // 時間でも曜日でもない → 注記
+            if (NOTE_WORDS.test(tok) && currentEntry.times.length > 0) {
+              currentEntry.times[currentEntry.times.length - 1].note = tok;
+            } else {
+              currentEntry.notes.push(tok);
+            }
+          }
+        }
+      } else if (currentEntry) {
+        // 継続行（時間のみ or 注記のみ）
+        for (const tok of tokens) {
+          if (SKIP_WORDS.test(tok)) { currentEntry.skip = true; break; }
+          const t = extractTime(tok);
+          if (t) {
+            // ★がついている＝注記
+            const note = tok.replace(/[\d:]/g,'').replace(/[★※☆◎●■▲＊*]/g,'').trim();
+            currentEntry.times.push({ time: t, note });
+          } else if (NOTE_WORDS.test(tok)) {
+            // 注記は直前の時間に紐付け、なければ全体注記
+            if (currentEntry.times.length > 0) {
+              const last = currentEntry.times[currentEntry.times.length - 1];
+              if (!last.note) last.note = tok;
+            } else {
+              currentEntry.notes.push(tok);
+            }
+          } else if (tok.length > 0 && !/^[日月火水木金土]$/.test(tok)) {
+            currentEntry.notes.push(tok);
+          }
+        }
+      }
+    }
+
+    // エントリを公演ごとのレコードに展開
+    const records = [];
+    let idx = 0;
+    for (const entry of results) {
+      if (entry.skip) {
+        records.push({ idx: idx++, dateStr: entry.dateStr, weekday: entry.weekday, skip: true, raw: entry.dateStr });
+        continue;
+      }
+      if (entry.times.length === 0) {
+        // 時間なし＝情報不明として1件登録
+        records.push({
+          idx: idx++,
+          dateStr: entry.dateStr,
+          weekday: entry.weekday,
+          time: '',
+          note: entry.notes.join(' '),
+          skip: false,
+          raw: entry.dateStr,
+        });
+      } else {
+        for (const t of entry.times) {
+          const noteAll = [t.note, ...entry.notes].filter(Boolean).join(' ');
+          records.push({
+            idx: idx++,
+            dateStr: entry.dateStr,
+            weekday: entry.weekday,
+            time: t.time,
+            note: noteAll,
+            skip: false,
+            raw: entry.dateStr,
+          });
+        }
+      }
+    }
+    return records;
+  }
+
+  function parseImport() {
+    const raw = document.getElementById('importText').value.trim();
+
+    if (!raw) { alert('テキストをペーストしてください'); return; }
+
+    // 年の上書き
+    const yearInput = parseInt(document.getElementById('importYear').value);
+    if (!isNaN(yearInput) && yearInput > 2000) {
+      // extractDate内のcurrentYearを上書きするためグローバルに持たせる
+      window._importYearOverride = yearInput;
+    } else {
+      window._importYearOverride = null;
+    }
+
+    importParsed = parseTheaterSchedule(raw);
+    importSkipped = new Set(
+      importParsed.filter(p => p.skip).map(p => p.idx)
+    );
+
+    renderImportPreview();
+    document.getElementById('importStep1').style.display = 'none';
+    document.getElementById('importStep2').style.display = '';
+  }
+
+  function renderImportPreview() {
+    const list = document.getElementById('importPreviewList');
+    const tourTitle = document.getElementById('importTourTitle').value.trim();
+
+    const validItems  = importParsed.filter(p => !p.skip);
+    const skipItems   = importParsed.filter(p => p.skip);
+    const activeCount = validItems.filter(p => !importSkipped.has(p.idx)).length;
+
+    document.getElementById('importCountLabel').textContent = validItems.length;
+    document.getElementById('importConfirmCount').textContent = `（${activeCount}件）`;
+
+    list.innerHTML = '';
+
+    importParsed.forEach(p => {
+      const row = document.createElement('div');
+      const manualSkip = importSkipped.has(p.idx);
+
+      if (p.skip) {
+        // 休演日
+        row.className = 'import-preview-row skip-row';
+        row.style.opacity = '0.38';
+        row.innerHTML = `
+          <div class="import-preview-date" style="color:var(--muted);">${p.dateStr.slice(5).replace('-','/')}<br><span style="font-size:10px;">${p.weekday}</span></div>
+          <div class="import-preview-info">
+            <div class="import-preview-title" style="color:var(--muted);">休演日</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);">スキップ</div>`;
+      } else {
+        row.className = 'import-preview-row' + (manualSkip ? ' skip-row' : '');
+        const displayTitle = tourTitle ? `${tourTitle}` : '公演';
+        const noteHtml = p.note ? `<span style="color:var(--deep-rose);margin-left:6px;">📌 ${p.note}</span>` : '';
+        row.innerHTML = `
+          <div class="import-preview-date">${p.dateStr.slice(5).replace('-','/')}<br><span style="font-size:10px;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--muted);">${p.weekday}</span></div>
+          <div class="import-preview-info">
+            <div class="import-preview-title">${displayTitle}${noteHtml}</div>
+            <div class="import-preview-meta">
+              ${p.time ? '🕐 ' + p.time : '時間未定'}
+            </div>
+          </div>
+          <button class="import-preview-toggle ${manualSkip ? 'skip' : ''}" onclick="toggleSkip(${p.idx})">
+            ${manualSkip ? '追加する' : 'スキップ'}
+          </button>`;
+      }
+      list.appendChild(row);
+    });
+
+    // 休演日件数
+    const errBox = document.getElementById('importErrorBox');
+    if (skipItems.length > 0) {
+      errBox.style.display = '';
+      errBox.style.background = 'rgba(138,112,128,0.08)';
+      errBox.style.borderColor = 'rgba(138,112,128,0.2)';
+      errBox.style.color = 'var(--muted)';
+      errBox.textContent = `ℹ️ 休演日 ${skipItems.length}件は自動的にスキップされます。`;
+    } else {
+      errBox.style.display = 'none';
+    }
+  }
+
+  function toggleSkip(idx) {
+    if (importSkipped.has(idx)) importSkipped.delete(idx);
+    else importSkipped.add(idx);
+    renderImportPreview();
+  }
+
+  function confirmImport() {
+    const tourTitle = document.getElementById('importTourTitle').value.trim();
+    const venue     = document.getElementById('importVenueTitle').value.trim();
+    const toAdd = importParsed.filter(p => !p.skip && !importSkipped.has(p.idx));
+
+    if (toAdd.length === 0) { alert('登録する公演がありません'); return; }
+
+    toAdd.forEach(p => {
+      events.push({
+        id: nextId++,
+        type: 'concert',
+        title: tourTitle || '公演',
+        date:  p.dateStr,
+        time:  p.time || '',
+        venue: venue,
+        watchDate: '',
+        memo:  p.note || '',
+      });
+    });
+
+    closeImportModal();
+    renderAll();
+    showToast(`✦ ${toAdd.length}件の公演を登録しました`);
+  }
+
+  // ── Toast ──
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.style.cssText = `
+      position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);
+      background:var(--burgundy);color:#fff;padding:12px 24px;border-radius:50px;
+      font-size:13px;font-family:'Hiragino Mincho ProN','Yu Mincho',serif;letter-spacing:.08em;
+      box-shadow:0 4px 20px rgba(125,43,69,0.3);z-index:999;
+      transition:all .3s ease;opacity:0;`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => {
+      t.style.opacity = '1';
+      t.style.transform = 'translateX(-50%) translateY(0)';
+    });
+    setTimeout(() => {
+      t.style.opacity = '0';
+      t.style.transform = 'translateX(-50%) translateY(10px)';
+      setTimeout(() => t.remove(), 400);
+    }, 2800);
+  }
+
+  // ── Init ──
+  function renderAll() {
+    renderCalendar();
+    renderUpcoming();
+    renderEvents();
+  }
+  renderAll();
+</script>
+</body>
+</html>
